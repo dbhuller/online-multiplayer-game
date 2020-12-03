@@ -19,6 +19,7 @@ s.listen(2)
 print("Waiting for connection on port: " + str(port) + " and server: " + server)
 
 def threaded_client(conn):
+    conn.send(str.encode("Connected"))
     reply = ""
     while True:
         try:
@@ -35,6 +36,8 @@ def threaded_client(conn):
             conn.sendall(str.encode(reply))
         except:
             break
+    print("Lost Connection")
+    conn.close()
 
 # Server always listening for new connections, start new thread, ect
 while True:
@@ -42,4 +45,4 @@ while True:
     conn, addr = s.accept()
     print("Connected to: ", addr)
 
-    start_new_thread(threaded_client(), (conn, ))
+    start_new_thread(threaded_client, (conn,))
