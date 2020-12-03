@@ -1,6 +1,7 @@
 import socket
 from _thread import *
-import sys
+from player import Player
+import pickle
 
 server = "192.168.1.5"
 port = 5555
@@ -18,27 +19,17 @@ s.listen(2)
 
 print("Waiting for connection on port: " + str(port) + " and server: " + server)
 
-# COPIED from client.py
-# Read position as string, split and return as int
-def read_position(str):
-    str = str.split(",")
-    return int(str[0], int(str[1]))
 
-# Read tuple value and convert to string
-def make_position(tup):
-    return str(tup[0]) + "," + str(tup[1])
-#-------------------------
-# List to keep track of position touples of players
-position_list = [(0, 0), (100, 100)]
+players = [Player(0, 0, 50, 50, (255, 0, 0)), Player(100, 100, 50, 50, (0, 0, 255))]
 
 def threaded_client(conn, player):
-    conn.send(str.encode(make_position(position_list[player])))
+    conn.send(pickle.dumps(players[player]))
     reply = ""
     while True:
         try:
             # read and update player position
-            data = read_position(conn.recv(2048).decode())
-            position_list[player] = data
+            data = pickle.loads(conn.recv(2048))
+            players[player] = data
             # reply = data.decode("utf-8")
             
 
@@ -47,13 +38,13 @@ def threaded_client(conn, player):
                 break
             else:
                 if player == 1:
-                    reply = position_list[0]
+                    reply = players[0]
                 else:
-                    reply = position_list[1]
+                    reply = players[1]
                 print("Recieved: ", data)
                 print("Sending: ", reply)
 
-            conn.sendall(str.encode(make_position(reply)))
+            conn.sendall(pickle.dumps(reply))
         except:
             break
     print("Lost Connection")
